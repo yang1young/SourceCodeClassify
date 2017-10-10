@@ -1,0 +1,5 @@
+.idea/
+*.pyc
+data/
+models/
+models_of_tag/
