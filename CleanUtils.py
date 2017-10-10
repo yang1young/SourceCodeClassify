@@ -4,7 +4,7 @@ import mysql.connector
 
 SPLIT_CHARS = [',','+','&','!','%','?','_','|',':','-','=','\\','~','*','^','<','>','[',']','$','{','}',';','.','`','@','(',')']
 _WORD_SPLIT = re.compile(b"([,+\-&!%'_?|=\s/\*^<>$@\[\](){}#;])")
-KEY_WORD_PATH = ""
+KEY_WORD_PATH = '/home/qiaoyang/bishe/SourceCodeClassify/data/keyword.txt'
 
 
 # all kind of split char
@@ -110,17 +110,19 @@ def code_anonymous(code):
 
     final_code = ''
     for code in codes:
-        if ((code == ' ') | (keyword.__contains__(code))):
+        if ((code == ' ') | (code in keyword)):
             final_code += code
         elif (code != ''):
             # replace number
             if (code.isdigit()):
                 final_code += 'NUMBER'
-            # if the variable or function's name is long, we keep it
-            elif (code.__len__() >= 3):
-                final_code += code
-            # if the variable or function's name is short, we replace it
-            elif (code.__len__() < 3):
+            # # if the variable or function's name is long, we keep it
+            # elif (code.__len__() >= 3):
+            #     final_code += code
+            # # if the variable or function's name is short, we replace it
+            # elif (code.__len__() < 3):
+            #     final_code += ' VAR '
+            else:
                 final_code += ' VAR '
     return final_code
 
@@ -160,3 +162,10 @@ def AST_type_clean(line_dict, need_repeated):
         line_code.append(' '.join(e for e in remove_duplicated))
 
     return ','.join(e for e in line_code)
+
+def remove_blank(texts):
+    new_texts = []
+    for text in texts:
+        if(text!='' and text!=' '):
+            new_texts.append(text)
+    return new_texts
