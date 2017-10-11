@@ -116,7 +116,7 @@ def label_to_categorical(labels, need_to_categorical):
 def prepare_classification_data(data_path,is_ast):
 
     df = pd.read_csv(data_path, sep='@', header=None, encoding='utf8', engine='python')
-    selected = ['tag', 'assemble','byte']
+    selected = ['tag', 'code','ast']
     df.columns = selected
     if(is_ast):
         texts = df[selected[2]].values.astype('U')
@@ -128,23 +128,16 @@ def prepare_classification_data(data_path,is_ast):
     return texts,labels
 
 
-def prepare_dl_data(data_path,is_bytecode):
+def prepare_dl_data(data_path):
 
     df = pd.read_csv(data_path, sep='@', header=None, encoding='utf8', engine='python')
-    selected = ['tag', 'assemble', 'byte']
+    selected = ['tag', 'code','ast']
     df.columns = selected
-    code_index = 1
-    if (is_bytecode):
-        code_index = 2
-    texts = df[selected[code_index]].tolist()
-    # texts = [s.encode('utf-8') for s in texts]
-    labels = df[selected[0]].tolist()
 
-    blocks = []
-    for text in texts:
-        codes = str(text).split('$')
-        blocks.append(codes[:-1])
-    return texts,blocks,labels
+    code = df[selected[1]].values.astype('U')
+    ast = df[selected[2]].values.astype('U')
+    labels = df[selected[0]].tolist()
+    return code,ast,labels
 
 
 def save_obj(obj,path, name):
