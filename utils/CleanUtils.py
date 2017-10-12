@@ -4,7 +4,7 @@ import mysql.connector
 
 SPLIT_CHARS = [',','+','&','!','%','?','_','|',':','-','=','\\','~','*','^','<','>','[',']','$','{','}',';','.','`','@','(',')']
 _WORD_SPLIT = re.compile(b"([,+\-&!%'_?|=\s/\*^<>$@\[\](){}#;])")
-KEY_WORD_PATH = '/home/qiaoyang/bishe/SourceCodeClassify/data/keyword.txt'
+KEY_WORD_PATH = '/home/qiaoyang/bishe/SourceCodeClassify/keyword.txt'
 
 
 # all kind of split char
@@ -127,6 +127,11 @@ def code_anonymous(code):
     return final_code
 
 
+def string_reverse(string):
+    lst = string.split()  # split by blank space by default
+    return ' '.join(lst[::-1])
+
+
 # make sure every split char is blank
 def get_normalize_code(code,max_lenghth):
     if(code is None):
@@ -162,6 +167,7 @@ def AST_type_clean(line_dict, need_repeated):
         line_code.append(' '.join(e for e in remove_duplicated))
 
     return ','.join(e for e in line_code)
+
 
 def remove_blank(texts):
     new_texts = []

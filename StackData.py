@@ -1,14 +1,13 @@
 import codecs
-import mysql.connector
 import os
-import CleanUtils as cc
+import mysql.connector
+from utils import CleanUtils as cc
 
 
+path = '/home/qiaoyang/bishe/SourceCodeClassify/data_so/'
 tagSet = ['opengl','sockets','sorting', 'mfc','lambda', 'random','math','io', 'openmp','xcode',
           'arduino','jni','mingw','tree','directx','time', 'openssl','network','hash','mysql',
           'heap', 'gtk', 'graph']
-path = '/home/qiaoyang/bisheData/'
-
 
 def codeIntoSepFile():
     conn = mysql.connector.connect(user='root', password='1qazxc', database='codetag')  # , use_unicode=True
@@ -108,6 +107,83 @@ def type_mix_code():
 
 
 
+def create_dict():
+    tagDict = dict()
+    i =0
+    for tag in tagSet:
+        tagDict[tag]=i
+        i+=1
+    return tagDict
+
+def prepare_data():
+    conn = mysql.connector.connect(user='root', password='1qazxc', database='codetag')  # , use_unicode=True
+    cursor = conn.cursor(buffered=True)
+    cursor.execute('select * from selectTagType')
+    numRows = int(cursor.rowcount)
+
+    code_train = codecs.open(path+'trainCode.txt', 'w+', 'utf8')
+    type_train = codecs.open(path+'trainType.txt', 'w+', 'utf8')
+    tag_train = codecs.open(path +'trainTag.txt', 'w+', 'utf8')
+
+    code_test = codecs.open(path + 'testCode.txt', 'w+', 'utf8')
+    type_test = codecs.open(path + 'testType.txt', 'w+', 'utf8')
+    tag_test = codecs.open(path + 'testTag.txt', 'w+', 'utf8')
+
+    for i in range(numRows):
+        row = cursor.fetchone()
+        id = row[0]
+        code = cc.code_anonymous(cc.get_normalize_code(cc.remove_non_ascii_1(row[1].encode('utf-8')).replace("\n"," "),1000))
+        patternBlank = re.compile(' +')
+        code = re.sub(patternBlank, " ", code)
+        type = str(row[2]).replace('\n','')
+        tag = str(row[3]).replace('\n','')
+        if(i<numRows*0.8):
+            code_train.write(code+'\n')
+            type_train.write(type+'\n')
+            tag_train.write(tag+'\n')
+        else:
+            code_test.write(code + '\n')
+            type_test.write(type + '\n')
+            tag_test.write(tag + '\n')
+    code_train.close()
+    type_train.close()
+    tag_train.close()
+    code_test.close()
+    type_test.close()
+    tag_test.close()
+
+
+def prepare_csv():
+    conn = mysql.connector.connect(user='root', password='1qazxc', database='codetag')  # , use_unicode=True
+    cursor = conn.cursor(buffered=True)
+    cursor.execute('select * from selectTagType')
+    numRows = int(cursor.rowcount)
+    tagDict = create_dict()
+
+    code_train = codecs.open(path+'train.txt', 'w+', 'utf8')
+    code_dev = codecs.open(path + 'dev.txt', 'w+', 'utf8')
+    code_test = codecs.open(path + 'test.txt', 'w+', 'utf8')
+
+    for i in range(numRows):
+        row = cursor.fetchone()
+        id = row[0]
+        code = cc.code_anonymous(cc.get_normalize_code(cc.remove_non_ascii_1(row[1].encode('utf-8')).replace("\n"," "),200))
+        patternBlank = re.compile(' +')
+        code = re.sub(patternBlank, " ", code).replace("@","")
+        type = cc.string_reverse(str(row[2]).replace('\n',''))
+        tag = str(tagDict.get(str(row[3]).replace('\n','')))
+        if(i<numRows*0.7):
+            code_train.write(tag+"@"+code+"@"+type+"\n")
+        elif(i<numRows*0.8):
+            code_dev.write(tag+"@"+code+"@"+type+"\n")
+        else:
+            code_test.write(tag+"@"+code+"@"+type+"\n")
+
+    code_train.close()
+    code_dev.close()
+    code_test.close()
+
+
 #select_code_data()
 #codeIntoSepFile()
-type_mix_code()
+#type_mix_code()

@@ -1,14 +1,13 @@
 #!/usr/bin/python
 # coding=utf-8
-import os
-import random
-import DataHelper
 import numpy as np
 import pandas as pd
 import sklearn.tree as tree
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.metrics import precision_score, recall_score, accuracy_score
+
+from utils import DataHelper
 
 
 def tf_idf_model(x_train):

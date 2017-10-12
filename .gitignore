@@ -1,5 +1,6 @@
 .idea/
 *.pyc
-data/
+data_so/
+data_molili/
 model/
 models_of_tag/
