@@ -6,6 +6,7 @@ from Utils import CleanUtils as cc
 
 
 path = '/home/qiaoyang/bishe/SourceCodeClassify/data_so/'
+sep_path = '/home/qiaoyang/bisheData/'
 # tagSet = ['opengl','sockets','sorting', 'mfc','lambda', 'random','math','io', 'openmp','xcode',
 #           'arduino','jni','mingw','tree','directx','time', 'openssl','network','hash','mysql',
 #           'heap', 'gtk', 'graph']
@@ -71,14 +72,14 @@ def select_code_data():
 
 def type_mix_code():
 
-    pathNew = path+"astData/"
-    pathOrigin = path+"codeData/"
-    originFiles = os.listdir(pathOrigin)
-    originFiles.sort(key=lambda x: int(str(x).split("-")[0]))
+    pathNew = sep_path+"astData/"
+    pathOrigin = sep_path+"codeData/"
+    #originFiles = os.listdir(pathOrigin)
+    #originFiles.sort(key=lambda x: int(str(x).split("-")[0]))
     #print originFiles
 
     newFiles = os.listdir(pathNew)
-    newFiles.sort(key=lambda x: int(str(x).split("-")[0]))
+    newFiles.sort(key=lambda x: (str(x).split("-")[1],int(str(x).split("-")[0])))
     #print newFiles.__len__()
 
 
@@ -167,28 +168,33 @@ def prepare_data():
 def prepare_csv():
     conn = mysql.connector.connect(user='root', password='1qazxc', database='codetag')  # , use_unicode=True
     cursor = conn.cursor(buffered=True)
-    cursor.execute('select * from selectTagType')
-    numRows = int(cursor.rowcount)
     tagDict = create_dict()
 
     code_train = codecs.open(path+'train.txt', 'w+', 'utf8')
     code_dev = codecs.open(path + 'dev.txt', 'w+', 'utf8')
     code_test = codecs.open(path + 'test.txt', 'w+', 'utf8')
 
-    for i in range(numRows):
-        row = cursor.fetchone()
-        id = row[0]
-        code = cc.code_anonymous(cc.get_normalize_code(cc.remove_non_ascii_1(row[1].encode('utf-8')).replace("\n"," "),1000))
-        patternBlank = re.compile(' +')
-        code = re.sub(patternBlank, " ", code).replace("@","")
-        type = cc.string_reverse(str(row[2]).replace('\n',''))
-        tag = str(tagDict.get(str(row[3]).replace('\n','')))
-        if(i<numRows*0.7):
-            code_train.write(tag+"@"+code+"@"+type+"\n")
-        elif(i<numRows*0.8):
-            code_dev.write(tag+"@"+code+"@"+type+"\n")
-        else:
-            code_test.write(tag+"@"+code+"@"+type+"\n")
+    for t in tagSet:
+        #cursor.execute('select * from selectTagType where ')
+        cursor.execute('select * from selectTagType where Tags = %s ORDER BY Id',(t,))
+        numRows = int(cursor.rowcount)
+        print str(numRows)+'---------'+t
+        for i in range(numRows):
+            row = cursor.fetchone()
+            id = row[0]
+            code = cc.code_anonymous(
+                cc.get_normalize_code(cc.remove_non_ascii_1(row[1].encode('utf-8')).replace("\n", " "), 1000))
+            patternBlank = re.compile(' +')
+            code = re.sub(patternBlank, " ", code).replace("@", "")
+            type = cc.remove_dupliacte(cc.string_reverse(str(row[2]).replace('\n', '')))
+            tag = str(tagDict.get(str(row[3]).replace('\n', '')))
+            if (i < numRows * 0.7):
+                code_train.write(tag + "@" + code + "@" + type + "\n")
+            elif (i < numRows * 0.8):
+                code_dev.write(tag + "@" + code + "@" + type + "\n")
+            else:
+                code_test.write(tag + "@" + code + "@" + type + "\n")
+            #print str(id)+"---"+t
 
     code_train.close()
     code_dev.close()
@@ -196,6 +202,6 @@ def prepare_csv():
 
 
 #select_code_data()
-codeIntoSepFile()
+#codeIntoSepFile()
 #type_mix_code()
-#prepare_csv()
+prepare_csv()

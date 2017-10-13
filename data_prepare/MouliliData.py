@@ -35,7 +35,7 @@ def prepare_csv():
 
         patternBlank = re.compile(' +')
         code = re.sub(patternBlank, " ", code).replace("@", "")
-        type = cc.string_reverse(type.replace('\n', ''))
+        type = cc.remove_dupliacte(cc.string_reverse(type.replace('\n', '')))
 
         tag = int(file.split(".")[0].split("-")[0])-1
         i = int(file.split(".")[0].split("-")[1])
@@ -48,4 +48,4 @@ def prepare_csv():
             code_test.write(str(tag) + "@" + code + "@" + type + "\n")
 
 
-#prepare_csv()
+prepare_csv()

@@ -126,6 +126,13 @@ def code_anonymous(code):
                 final_code += ' VAR '
     return final_code
 
+def remove_dupliacte(string):
+    sss = string.split(",")
+    result = []
+    for ss in sss:
+       s = sorted(set(str(ss).split(' ')))
+       result.append(' '.join(s))
+    return ','.join(result)
 
 def string_reverse(string):
     lst = string.split()  # split by blank space by default

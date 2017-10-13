@@ -36,9 +36,18 @@ def data_transfer(word_index,x,z,y):
                         data[i, k] = word_index[word]
                 k = k + 1
         return data
+
     train_code = data_private(word_index,x)
     train_ast = data_private(word_index,z)
     labels = to_categorical(np.asarray(y),num_classes=NUM_CLASS)
+
+    indices = np.arange(train_code.shape[0])
+    np.random.shuffle(indices)
+
+    train_code = train_code[indices]
+    train_ast = train_ast[indices]
+    labels = labels[indices]
+
     print('Shape of code tensor:', train_code.shape)
     print('Shape of ast tensor:', train_ast.shape)
     print('Shape of label tensor:', labels.shape)
