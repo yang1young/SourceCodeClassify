@@ -1,13 +1,18 @@
 import codecs
 import os
+import re
 import mysql.connector
-from utils import CleanUtils as cc
+from Utils import CleanUtils as cc
 
 
 path = '/home/qiaoyang/bishe/SourceCodeClassify/data_so/'
-tagSet = ['opengl','sockets','sorting', 'mfc','lambda', 'random','math','io', 'openmp','xcode',
-          'arduino','jni','mingw','tree','directx','time', 'openssl','network','hash','mysql',
-          'heap', 'gtk', 'graph']
+# tagSet = ['opengl','sockets','sorting', 'mfc','lambda', 'random','math','io', 'openmp','xcode',
+#           'arduino','jni','mingw','tree','directx','time', 'openssl','network','hash','mysql',
+#           'heap', 'gtk', 'graph']
+
+tagSet = ['opencv','opengl','file','sockets','memory','matrix','sorting','recursion','optimization','assembly',
+          'mfc','lambda','macros','casting','random','osx','math','polymorphism','parsing','arduino','iterator',
+          'assembly','jni','mingw','tree','directx','time', 'openssl','hash','mysql']
 
 def codeIntoSepFile():
     conn = mysql.connector.connect(user='root', password='1qazxc', database='codetag')  # , use_unicode=True
@@ -21,7 +26,7 @@ def codeIntoSepFile():
         id = str(row[0])
         code = row[1]
         tag = str(row[2])
-        f =  codecs.open(path+'codeData/'+str(i)+"-"+tag+'.c','w+','utf8')
+        f =  codecs.open("/home/qiaoyang/bisheData/codeData/"+str(i)+"-"+tag+'.c','w+','utf8')
         f.write(code)
         #tagFile.write(tag)
         f.close()
@@ -36,7 +41,7 @@ def select_code_data():
     cursor.execute('select * from SampleC')
     numRows = int(cursor.rowcount)
     print numRows
-
+    data_dict = dict()
     for i in range(numRows):
         row = cursor.fetchone()
         id = row[0]
@@ -46,6 +51,10 @@ def select_code_data():
 
         for tag in tags:
             if (tag in tagSet):
+                if(tag in data_dict):
+                    data_dict[tag] +=1
+                else:
+                    data_dict[tag] = 1
                 finalTag =tag
 
         if (finalTag != ''):
@@ -54,6 +63,8 @@ def select_code_data():
             # print data
             cursorInsert.execute(sql, data)
         print str(i)+"----"+str(numRows)
+    for k, v in data_dict.iteritems():
+        print k, v
     conn.commit()
     conn.close()
 
@@ -167,7 +178,7 @@ def prepare_csv():
     for i in range(numRows):
         row = cursor.fetchone()
         id = row[0]
-        code = cc.code_anonymous(cc.get_normalize_code(cc.remove_non_ascii_1(row[1].encode('utf-8')).replace("\n"," "),200))
+        code = cc.code_anonymous(cc.get_normalize_code(cc.remove_non_ascii_1(row[1].encode('utf-8')).replace("\n"," "),1000))
         patternBlank = re.compile(' +')
         code = re.sub(patternBlank, " ", code).replace("@","")
         type = cc.string_reverse(str(row[2]).replace('\n',''))
@@ -185,5 +196,6 @@ def prepare_csv():
 
 
 #select_code_data()
-#codeIntoSepFile()
+codeIntoSepFile()
 #type_mix_code()
+#prepare_csv()

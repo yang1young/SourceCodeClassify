@@ -9,13 +9,14 @@ from keras.models import Model, Sequential
 from keras.utils.np_utils import to_categorical
 from sklearn.metrics import precision_score, recall_score, accuracy_score
 
-import StackData
-import utils.DataHelper as data_helper
-import utils.ModelUtils as mu
-from utils import CleanUtils as cu
+from Utils import DataHelper as data_helper
+from Utils import ModelUtils as mu
+from data_prepare import StackData
+from data_prepare import MouliliData
+from Utils import CleanUtils as cu
 
 MAX_SENT_LENGTH = 200
-NUM_CLASS = 23
+NUM_CLASS = 104
 MAX_NB_WORDS = 500
 EMBEDDING_DIM = 300
 MAX_EPOCH = 20
@@ -95,7 +96,7 @@ def cnn_model():
     return model
 
 
-def eval_model(model,x1,x2,y,label):
+def eval_model(model,x1,x2,y,label,model_path):
 
     predict = model.predict([x1,x2])
     print predict
@@ -106,14 +107,18 @@ def eval_model(model,x1,x2,y,label):
         y_predict.append(np.argmax(p))
         y_real.append(np.argmax(r))
 
-    mu.precision_recall(label,y_predict,y_real)
+    result = mu.precision_recall(label, y_predict, y_real)
     y_predict = np.asarray(y_predict)
     y_real = np.asarray(y_real)
 
-    print 'crosstab:{0}'.format(pd.crosstab(y_real, y_predict, margins=True))
-    print 'precision:{0}'.format(precision_score(y_real, y_predict, average='macro'))
-    print 'recall:{0}'.format(recall_score(y_real, y_predict, average='macro'))
-    print 'accuracy:{0}'.format(accuracy_score(y_real, y_predict))
+    cross_table = 'crosstab:{0}'.format(pd.crosstab(y_real, y_predict, margins=True))
+    precision = 'precision:{0}'.format(precision_score(y_real, y_predict, average='macro'))
+    recall = 'recall:{0}'.format(recall_score(y_real, y_predict, average='macro'))
+    accuracy = 'accuracy:{0}'.format(accuracy_score(y_real, y_predict))
+
+    file = open(model_path + 'train.log', 'w')
+    file.write(result + '\n' + cross_table + '\n' + precision + '\n' + recall + '\n' + accuracy + '\n')
+    print result + '\n' + cross_table + '\n' + precision + '\n' + recall + '\n' + accuracy + '\n'
 
 
 def train(x1_train, x2_train,y_train,x1_val, x2_val,y_val,model_path):
@@ -138,7 +143,16 @@ def train(x1_train, x2_train,y_train,x1_val, x2_val,y_val,model_path):
     #data_helper.save_obj(history.history, model_path, "train.log")
     return model
 
+def re_train(x1_train, x2_train,y_train,x1_val, x2_val,y_val,model):
+    filepath = model_path + "weights-improvement-{epoch:02d}-{val_acc:.2f}.hdf5"
+    checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=0, save_best_only=True, mode='max')
+    callbacks_list = [checkpoint]
+    history = model.fit([x1_train, x2_train], y_train, validation_data=([x1_val, x2_val], y_val),
+                        epochs=MAX_EPOCH, batch_size=80, callbacks=callbacks_list)
 
+    print(history.history)
+    # data_helper.save_obj(history.history, model_path, "train.log")
+    return model
 
 def reload_model(model_path,model_name):
     model = rnn_model()
@@ -181,5 +195,6 @@ if __name__ == "__main__":
 
     model = train(x1_train,x2_train,y_train,x1_val,x2_val,y_val,model_path)
     # model = reload_model(model_path,'weights-improvement-14-0.63.hdf5')
-    eval_model(model,x1_test,x2_test,y_test,label)
+    #re_train(x1_train,x2_train,y_train,x1_val,x2_val,y_val,model)
+    eval_model(model,x1_test,x2_test,y_test,label,model_path)
     # #eval_model(model,x_test_d,y_test_d)

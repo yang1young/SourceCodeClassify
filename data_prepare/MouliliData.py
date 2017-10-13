@@ -1,7 +1,7 @@
 import codecs
 import os
 import re
-from utils import CleanUtils as cc
+from Utils import CleanUtils as cc
 
 
 path = '/home/qiaoyang/codeData/molili/'
@@ -31,7 +31,7 @@ def prepare_csv():
         code = open(code_path+file,'r').read()
 
         code = cc.code_anonymous(
-            cc.get_normalize_code(cc.remove_non_ascii_1(code.encode('utf-8')).replace("\n", " "), 200))
+            cc.get_normalize_code(cc.remove_non_ascii_1(code.encode('utf-8')).replace("\n", " "), 1000))
 
         patternBlank = re.compile(' +')
         code = re.sub(patternBlank, " ", code).replace("@", "")
@@ -48,4 +48,4 @@ def prepare_csv():
             code_test.write(str(tag) + "@" + code + "@" + type + "\n")
 
 
-prepare_csv()
+#prepare_csv()

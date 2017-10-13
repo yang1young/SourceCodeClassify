@@ -3,12 +3,14 @@
 import numpy as np
 import pandas as pd
 import sklearn.tree as tree
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.metrics import precision_score, recall_score, accuracy_score
-
-from utils import DataHelper
-
+from Utils import ModelUtils as mu
+from Utils import DataHelper
+from data_prepare import StackData
+from data_prepare import MouliliData
 
 def tf_idf_model(x_train):
     # 将文本中的词语转换为词频矩阵，矩阵元素a[i][j] 表示j词在i类文本下的词频
@@ -20,14 +22,20 @@ def tf_idf_model(x_train):
     return x_train, count_vect, tfidf_transformer
 
 
-def eval_model(real, predict, name):
-    assert len(predict) == len(real)
-    print name
-    print 'crosstab:{0}'.format(pd.crosstab(np.asarray(real), np.asarray(predict), margins=True))
-    print 'precision:{0}'.format(precision_score(real, predict, average='macro'))
-    print 'recall:{0}'.format(recall_score(real, predict, average='macro'))
-    print 'accuracy:{0}'.format(accuracy_score(real, predict))
+def eval_model(label,y_predict, y_real,model_path):
+    assert len(y_predict) == len(y_real)
+    result = mu.precision_recall(label, y_predict, y_real)
+    y_predict = np.asarray(y_predict)
+    y_real = np.asarray(y_real)
 
+    cross_table = 'crosstab:{0}'.format(pd.crosstab(y_real, y_predict, margins=True))
+    precision = 'precision:{0}'.format(precision_score(y_real, y_predict, average='macro'))
+    recall = 'recall:{0}'.format(recall_score(y_real, y_predict, average='macro'))
+    accuracy = 'accuracy:{0}'.format(accuracy_score(y_real, y_predict))
+
+    file = open(model_path + 'train.log', 'w')
+    file.write(result + '\n' + cross_table + '\n' + precision + '\n' + recall + '\n' + accuracy + '\n')
+    print result + '\n' + cross_table + '\n' + precision + '\n' + recall + '\n' + accuracy + '\n'
 
 # def train(train_path, test_path, test_path_duplicate, is_bytecode):
 #     train_x, train_y = data_helper.prepare_classification_data(train_path, is_bytecode)
@@ -62,7 +70,7 @@ def train(train_path,test_path, is_ast):
     x_train, count_vect, tfidf_transformer = tf_idf_model(train_x)
     print 'finish tf idf'
     # clf = MultinomialNB().fit(x_train, y_train)
-    clf = tree.DecisionTreeClassifier().fit(x_train, train_y)
+    clf = RandomForestClassifier(n_estimators=50).fit(x_train, train_y)
     print 'finish training'
     del train_x,train_y,x_train
     # data_helper.save_obj(clf,path,'clf')
@@ -73,18 +81,21 @@ def train(train_path,test_path, is_ast):
     print 'finish test data'
     predict_distict = clf.predict(x_test)
     print len(predict_distict)
-    eval_model(test_y, predict_distict, "distinct data evaluation")
+    label = StackData.tagSet
+    # label = MouliliData.tagSet
+    eval_model(label, predict_distict, test_y,train_path)
     return clf, count_vect, tfidf_transformer
 
 
 if __name__ == "__main__":
-    path = "/home/qiaoyang/bishe/SourceCodeClassify/data/"
+    path = "/home/qiaoyang/bishe/SourceCodeClassify/data_so/"
     #path = path+"train_repalce_number/"
     train_path = path+"train.txt"
     test_path = path+"test.txt"
     #test_path_duplicate = "/home/qiaoyang/codeData/binary_code/newData/data.dev"
     is_ast = False
     clf, count_vect, tfidf_transformer = train(train_path, test_path,is_ast)
+
     # clf = data_helper.load_obj(path,'clf')
     # count_vect = data_helper.load_obj(path,'countvec')
     # tfidf_transformer = data_helper.load_obj(path,'tfidf')
