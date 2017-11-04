@@ -183,7 +183,8 @@ def prepare_csv():
             row = cursor.fetchone()
             id = row[0]
             code = cc.code_anonymous(
-                cc.get_normalize_code(cc.remove_non_ascii_1(row[1].encode('utf-8')).replace("\n", " "), 1000))
+                cc.get_normalize_code(cc.remove_non_ascii_1(row[1].encode('utf-8')).replace("\n", " "), 1000)).replace('\x00', '')
+            #code = cc.get_normalize_code(cc.remove_non_ascii_1(row[1].encode('utf-8')).replace("\n", " "), 1000).replace("@","").replace('\x00', '')
             patternBlank = re.compile(' +')
             code = re.sub(patternBlank, " ", code).replace("@", "")
             type = cc.remove_dupliacte(cc.string_reverse(str(row[2]).replace('\n', '')))
@@ -204,4 +205,4 @@ def prepare_csv():
 #select_code_data()
 #codeIntoSepFile()
 #type_mix_code()
-prepare_csv()
+#prepare_csv()

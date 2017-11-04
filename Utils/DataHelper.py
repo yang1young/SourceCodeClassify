@@ -25,7 +25,7 @@ def label_to_categorical(labels, need_to_categorical):
 
 
 def prepare_classification_data(data_path, is_ast):
-    df = pd.read_csv(data_path, sep='@', header=None, encoding='utf8', engine='python')
+    df = pd.read_csv(data_path, sep='@', header=None, encoding='utf8', engine='c')
     selected = ['tag', 'code', 'ast']
     df.columns = selected
     if (is_ast):
@@ -39,7 +39,7 @@ def prepare_classification_data(data_path, is_ast):
 
 
 def prepare_dl_data(data_path):
-    df = pd.read_csv(data_path, sep='@', header=None, encoding='utf8', engine='python')
+    df = pd.read_csv(data_path, sep='@', header=None, encoding='utf8', engine='c')
     selected = ['tag', 'code', 'ast']
     df.columns = selected
 

@@ -28,10 +28,10 @@ def prepare_csv():
     for file in ast_files:
         print file
         type = open(ast_path+file,'r').read()
-        code = open(code_path+file,'r').read()
+        code = cc.remove_cpp_comment(open(code_path+file,'r').read())
 
-        code = cc.code_anonymous(
-            cc.get_normalize_code(cc.remove_non_ascii_1(code.encode('utf-8')).replace("\n", " "), 1000))
+        #code = cc.code_anonymous(
+        code =  cc.get_normalize_code(cc.remove_non_ascii_1(code.encode('utf-8')).replace("\n", " "), 1000).replace("@","").replace('\x00', '')
 
         patternBlank = re.compile(' +')
         code = re.sub(patternBlank, " ", code).replace("@", "")
@@ -48,4 +48,4 @@ def prepare_csv():
             code_test.write(str(tag) + "@" + code + "@" + type + "\n")
 
 
-prepare_csv()
+#prepare_csv()

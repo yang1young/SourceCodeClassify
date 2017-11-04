@@ -123,7 +123,8 @@ def code_anonymous(code):
             # elif (code.__len__() < 3):
             #     final_code += ' VAR '
             else:
-                final_code += ' VAR '
+                #final_code += ' VAR '
+                final_code +=code
     return final_code
 
 def remove_dupliacte(string):
@@ -182,3 +183,5 @@ def remove_blank(texts):
         if(text!='' and text!=' '):
             new_texts.append(text)
     return new_texts
+
+

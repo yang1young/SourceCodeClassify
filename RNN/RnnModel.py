@@ -2,8 +2,8 @@ import keras
 import numpy as np
 import pandas as pd
 from keras.callbacks import ModelCheckpoint
-from keras.layers import Conv1D, MaxPooling1D, Embedding, Merge, LSTM
-from keras.layers import Dense, Input, Flatten,Dropout
+from keras.layers import Conv1D, MaxPooling1D, Conv2D, MaxPooling2D,Embedding, Merge, LSTM
+from keras.layers import Dense, Input, Flatten,Dropout,Reshape
 from keras.layers.normalization import BatchNormalization
 from keras.models import Model, Sequential
 from keras.utils.np_utils import to_categorical
@@ -15,9 +15,9 @@ from data_prepare import MouliliData
 from data_prepare import StackData
 from Utils import CleanUtils as cu
 
-MAX_SENT_LENGTH = 50
-NUM_CLASS = 23
-MAX_NB_WORDS = 500
+MAX_SENT_LENGTH = 150
+NUM_CLASS = 30
+MAX_NB_WORDS = 5000
 EMBEDDING_DIM = 200
 MAX_EPOCH = 1
 
@@ -61,7 +61,7 @@ def cnn_model():
     convs = []
     filter_sizes = [3, 4, 5]
     sequence_input = Input(shape=(MAX_SENT_LENGTH,), dtype='int32')
-    embedded_sequences = Embedding(output_dim=EMBEDDING_DIM, input_dim=MAX_NB_WORDS, input_length=MAX_SENT_LENGTH,trainable = True)(sequence_input)
+    embedded_sequences = Embedding(output_dim=EMBEDDING_DIM, input_dim=MAX_NB_WORDS+1, input_length=MAX_SENT_LENGTH,trainable = True)(sequence_input)
 
     for fsz in filter_sizes:
         l_conv = Conv1D(nb_filter=128, filter_length=fsz, activation='relu')(embedded_sequences)
@@ -80,6 +80,34 @@ def cnn_model():
     preds = Dense(NUM_CLASS, activation='softmax')(l_dense)
 
     model = Model(sequence_input, preds)
+    print model.summary()
+    return model
+
+from keras.layers import Conv1D, MaxPooling1D, Conv2D, MaxPooling2D,Embedding, Merge, LSTM
+from keras.layers import Dense, Input, Flatten,Dropout,Reshape
+def cnn2_model():
+
+    filter_sizes = [3, 4, 5]
+    inputs = Input(shape=(MAX_SENT_LENGTH,), dtype='int32')
+    embedding = Embedding(output_dim=EMBEDDING_DIM, input_dim=MAX_NB_WORDS+1, input_length=MAX_SENT_LENGTH,trainable = True)(inputs)
+    reshape = Reshape((MAX_SENT_LENGTH, EMBEDDING_DIM, 1))(embedding)
+
+    conv_0 = Conv2D(512, filter_sizes[0], EMBEDDING_DIM, border_mode='valid', init='normal',activation='relu', dim_ordering='tf')(reshape)
+    conv_1 = Conv2D(512, filter_sizes[1], EMBEDDING_DIM, border_mode='valid', init='normal',activation='relu', dim_ordering='tf')(reshape)
+    conv_2 = Conv2D(512, filter_sizes[2], EMBEDDING_DIM, border_mode='valid', init='normal',activation='relu', dim_ordering='tf')(reshape)
+
+    maxpool_0 = MaxPooling2D(pool_size=(MAX_SENT_LENGTH - filter_sizes[0] + 1, 1), strides=(1, 1), border_mode='valid',dim_ordering='tf')(conv_0)
+    maxpool_1 = MaxPooling2D(pool_size=(MAX_SENT_LENGTH - filter_sizes[1] + 1, 1), strides=(1, 1), border_mode='valid',dim_ordering='tf')(conv_1)
+    maxpool_2 = MaxPooling2D(pool_size=(MAX_SENT_LENGTH - filter_sizes[2] + 1, 1), strides=(1, 1), border_mode='valid',dim_ordering='tf')(conv_2)
+
+    merged_tensor = Merge(mode='concat', concat_axis=1)([maxpool_0, maxpool_1, maxpool_2])
+    flatten = Flatten()(merged_tensor)
+    # reshape = Reshape((3*num_filters,))(merged_tensor)
+    dropout = Dropout(0.5)(flatten)
+
+    output = Dense(NUM_CLASS, activation='softmax')(dropout)
+    # this creates a model that includes
+    model = Model(input=inputs, output=output)
     print model.summary()
     return model
 
@@ -110,7 +138,7 @@ def eval_model(model,x,y,label,model_path):
 
 
 def train(x_train, y_train,x_val, y_val,model_path):
-    model = rnn_model()
+    model = cnn2_model()
     model.compile(loss='categorical_crossentropy',
                   optimizer='adam',
                   metrics=['accuracy'])
