@@ -11,9 +11,13 @@ sep_path = '/home/qiaoyang/bisheData/'
 #           'arduino','jni','mingw','tree','directx','time', 'openssl','network','hash','mysql',
 #           'heap', 'gtk', 'graph']
 
-tagSet = ['opencv','opengl','file','sockets','memory','matrix','sorting','recursion','optimization','assembly',
-          'mfc','lambda','macros','casting','random','osx','math','polymorphism','parsing','arduino','iterator',
-          'assembly','jni','mingw','tree','directx','time', 'openssl','hash','mysql']
+#tagSet = ['opencv','opengl','file','sockets','memory','matrix','sorting','recursion','optimization','assembly',
+#          'mfc','lambda','macros','casting','random','osx','math','polymorphism','parsing','arduino','iterator',
+#          'assembly','jni','mingw','tree','directx','time', 'openssl','hash','mysql']
+
+tagSet = ['opencv','opengl','file','sockets','memory','matrix','recursion','assembly','winapi','pthreads','stack',
+          'mfc','lambda','random','math','polymorphism','parsing','iterator','inheritance','loops','iterator','lambda',
+          'linker','jni','tree','directx','time', 'openssl','hash','mysql']
 
 def codeIntoSepFile():
     conn = mysql.connector.connect(user='root', password='1qazxc', database='codetag')  # , use_unicode=True
@@ -205,4 +209,4 @@ def prepare_csv():
 #select_code_data()
 #codeIntoSepFile()
 #type_mix_code()
-#prepare_csv()
+prepare_csv()

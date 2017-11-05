@@ -124,9 +124,9 @@ def cnn2_model():
     # reshape = Reshape((3*num_filters,))(merged_tensor)
     dropout = Dropout(0.5)(flatten)
 
-    output = Dense(NUM_CLASS, activation='softmax')(dropout)
+    #output = Dense(NUM_CLASS, activation='softmax')(dropout)
     # this creates a model that includes
-    model = Model(input=inputs, output=output)
+    model = Model(input=inputs, output=dropout)
     print model.summary()
     return model
 
